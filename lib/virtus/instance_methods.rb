@@ -41,7 +41,35 @@ module Virtus
       def attributes
         attribute_set.get(self)
       end
-      alias_method :to_hash, :attributes
+
+      # Returns a hash of all publicly accessible attributes converted to Hash
+      #
+      # @example
+      #   class Profile
+      #     include Virtus
+      #     attribute :nickname, String
+      #   end
+      #
+      #   class User
+      #     include Virtus
+      #
+      #     attribute :name, String
+      #     attribute :age,  Integer
+      #     attribute :profile, Profile
+      #   end
+      #
+      #   user = User.new(:name => 'John', :age => 28, :profile => {:nickname => 'john28'})
+      #   user.to_hash  # => { 'name' => 'John', 'age' => 28, 'profile' => {'nickname' => 'john28'} }
+      #
+      # @return [Hash]
+      #
+      # @api public
+      def as_json
+        attributes.inject({}) do |memo, value|
+          memo[value.first.to_s] = value.last.respond_to?(:as_json) ? value.last.as_json : value.last
+          memo
+        end
+      end
 
       # Mass-assign attribute values
       #
